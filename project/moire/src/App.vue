@@ -1,5 +1,5 @@
 <script setup>
-	import Main from '@/pages/Main.vue';
+	import MainPage from '@/pages/MainPage.vue';
 </script>
 
 <template>
@@ -20,7 +20,7 @@
 			</a>
 		</div>
 	</header>
-	<router-view />
+	<router-view :key="$route.fullPath" />
 	<footer class="footer container">
 		<div class="footer__wrapper">
 			<ul class="footer__links">

@@ -1,29 +1,47 @@
 import { createStore } from 'vuex';
+import { API_BASE_URL } from '@/config.js';
 import axios from 'axios';
 
 export default createStore({
 	state() {
 		return {
 			items: [],
+			images: [],
 		};
 	},
 	mutations: {
 		updateItems(state, data) {
 			state.items = data;
 		},
+		updateImages(state, data) {
+			state.images = data;
+			// console.log('Images updated', state.images);
+		},
 	},
 	getters: {
 		getItems(state) {
-			console.log('getItems', state.items);
 			return state.items;
+		},
+		getImages(state) {
+			return state.images;
 		},
 	},
 	actions: {
-		loadItems(context) {
+		loadItems(context, { categoryId, materialIds, seasonIds, colorIds, page, limit, minPrice, maxPrice }) {
 			return axios
-				.get('https://vue-moire.skillbox.cc/api/products')
+				.get(API_BASE_URL + '/api/products', {
+					params: {
+						categoryId,
+						materialIds,
+						seasonIds,
+						colorIds,
+						page,
+						limit,
+						minPrice,
+						maxPrice,
+					},
+				})
 				.then((resp) => {
-					console.log(resp);
 					context.commit('updateItems', resp.data);
 					return resp;
 				})
