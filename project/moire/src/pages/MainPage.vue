@@ -29,13 +29,13 @@
 				<!-- Product list -->
 				<ul class="catalog__list">
 					<li v-for="(item, index) of products" :key="item.id" class="catalog__item">
-						<a class="catalog__pic" href="#">
+						<router-link class="catalog__pic" href="#" :to="{ name: 'product', params: { id: item.id } }">
 							<img :src="item.image" :srcset="item.image" :alt="item.slug" />
-						</a>
+						</router-link>
 						<h3 class="catalog__title">
 							<a href="#"> {{ item.title }} </a>
 						</h3>
-						<span class="catalog__price"> {{ item.price }} ₽ </span>
+						<span class="catalog__price"> {{ item.priceFiltered }} ₽ </span>
 						<ul v-if="item.colors" class="colors colors--black">
 							<li v-for="(color, colorIndex) of item.colors" :key="color.id" class="colors__item">
 								<label class="colors__label">
@@ -65,6 +65,7 @@
 	import { mapGetters, mapActions, mapMutations } from 'vuex';
 	import BasePagination from '@/components/BasePagination.vue';
 	import ProductsFilter from '@/components/ProductsFilter.vue';
+	import numberFormat from '@/helpers/numberFormat';
 
 	export default defineComponent({
 		components: { BasePagination, ProductsFilter },
@@ -183,6 +184,7 @@
 					return this.productsData.items.map((product, index) => {
 						return {
 							...product,
+							priceFiltered: numberFormat(product.price),
 							image: this.getImages()[index],
 						};
 					});

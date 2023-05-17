@@ -182,8 +182,6 @@
 				let newStatus;
 				let index = this.currentMaterialIds.findIndex((materialId) => materialId === id);
 				if (!currentStatus && index === -1) {
-					console.log('NOT Current status: ', !currentStatus);
-					console.log('Index', index);
 					newStatus = true;
 					this.currentMaterialIds.push(id);
 				} else {

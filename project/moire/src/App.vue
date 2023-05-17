@@ -1,5 +1,15 @@
 <script setup>
-	import MainPage from '@/pages/MainPage.vue';
+	// import MainPage from '@/pages/MainPage.vue';
+	import CartIndicator from './components/CartIndicator.vue';
+	import { useStore } from 'vuex';
+
+	const store = useStore();
+
+	const userAccessKey = localStorage.getItem('userAccessKey');
+	if (userAccessKey) {
+		store.commit('updateUserAccessKey', { userAccessKey });
+	}
+	store.dispatch('loadCart');
 </script>
 
 <template>
@@ -7,17 +17,12 @@
 		<div class="header__wrapper">
 			<span class="header__info">Каталог</span>
 			<a class="header__logo" href="#">
-				<img src="img/svg/logo-moire.svg" alt="Логотип интернет магазина Moire" width="116" height="34" />
+				<router-link class="breadcrumbs__link" :to="{ name: 'main' }">
+					<img src="/img/svg/logo-moire.svg" alt="Логотип интернет магазина Moire" width="116" height="34" />
+				</router-link>
 			</a>
-
 			<a class="header__tel" href="tel:8 800 600 90 09"> 8 800 600 90 09 </a>
-
-			<a class="header__cart" href="cart.html" aria-label="Корзина с товарами">
-				<svg width="19" height="24">
-					<use xlink:href="#icon-cart"></use>
-				</svg>
-				<span class="header__count" aria-label="Количество товаров">3</span>
-			</a>
+			<CartIndicator></CartIndicator>
 		</div>
 	</header>
 	<router-view :key="$route.fullPath" />
