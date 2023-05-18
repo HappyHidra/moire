@@ -33,7 +33,7 @@
 							<img :src="item.image" :srcset="item.image" :alt="item.slug" />
 						</router-link>
 						<h3 class="catalog__title">
-							<a href="#"> {{ item.title }} </a>
+							<router-link href="#" :to="{ name: 'product', params: { id: item.id } }"> {{ item.title }} </router-link>
 						</h3>
 						<span class="catalog__price"> {{ item.priceFiltered }} ₽ </span>
 						<ul v-if="item.colors" class="colors colors--black">

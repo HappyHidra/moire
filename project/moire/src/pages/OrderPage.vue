@@ -67,7 +67,7 @@
 							<li class="options__item">
 								<label class="options__label">
 									<input @click="deliveryChoice('courier')" class="options__radio sr-only" type="radio" name="delivery" value="500" />
-									<span class="options__value"> Курьером <b>290 ₽</b> </span>
+									<span class="options__value"> Курьером <b>1200 ₽</b> </span>
 								</label>
 							</li>
 						</ul>
@@ -94,8 +94,10 @@
 					<ul class="cart__orders">
 						<li v-for="item of cartData" class="cart__order" :key="item.id">
 							<h3>
-								{{ item.product.title }} <b>размер</b> {{ item.size.title }} <br />
-								{{ item.quantity }} шт.
+								{{ item.product.title }} <br />
+								<b>Размер:</b> {{ item.size.title }}<br />
+								<b>Цвет: </b> {{ item.color.color.title }}<br />
+								<b>Кол-во: </b>{{ item.quantity }} шт.
 							</h3>
 							<b> {{ item.product.price }} ₽</b>
 							<span>Артикул: {{ item.product.id }}</span>
@@ -120,6 +122,8 @@
 				<div class="cart__error form__error-block" v-if="formErrorMessage">
 					<h4>Заявка не отправлена!</h4>
 					<p>Похоже произошла ошибка. Попробуйте отправить снова или перезагрузите страницу.</p>
+					<br />
+					{{ formErrorMessage }}
 				</div>
 			</form>
 		</section>
@@ -151,7 +155,7 @@
 		if (type === 'courier') {
 			deliveryMethod.value = 2;
 			deliveryMethodMessage.value = 'Доставка';
-			deliveryCostMessage.value = '290 ₽';
+			deliveryCostMessage.value = '1200 ₽';
 		}
 	};
 
@@ -184,7 +188,7 @@
 			.catch((error) => {
 				preloader.value = false;
 				formError.value = error.response.data.error.request || {};
-				formErrorMessage.value = error.response.data.error.message;
+				formErrorMessage.value = error.response.data.error.request.paymentTypeId;
 			});
 	};
 
@@ -196,7 +200,7 @@
 		if (deliveryMethod.value === 1) {
 			return store.getters.cartTotalPrice;
 		} else {
-			return store.getters.cartTotalPrice + 290;
+			return store.getters.cartTotalPrice + 1200;
 		}
 	});
 </script>

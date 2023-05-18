@@ -1,7 +1,10 @@
 <template>
 	<li class="cart__item product">
-		<div class="product__pic">
-			<img :src="item.color.gallery[0].file.url" width="120" height="120" :srcset="item.color.gallery[0].file.url" alt="Название товара" />
+		<div class="product__pic" v-if="item.color.gallery">
+			<img :src="item.color.gallery[0].file.url" width="120" height="120" :srcset="item.color.gallery[0].file.url" :alt="item.product.title" />
+		</div>
+		<div class="product__pic" v-else>
+			<img src="" width="120" height="120" srcset="" :alt="item.product.title" />
 		</div>
 		<h3 class="product__title">{{ item.product.title }}</h3>
 		<p class="product__info product__info--color">

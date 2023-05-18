@@ -12,7 +12,7 @@
 		</div>
 	</main>
 
-	<main v-else class="content container">
+	<main v-else-if="orderData.id" class="content container">
 		<div class="content__top">
 			<ul class="breadcrumbs">
 				<li class="breadcrumbs__item">
@@ -65,7 +65,7 @@
 
 				<div class="cart__block">
 					<ul class="cart__orders">
-						<li v-for="item in orderDataBasket" class="cart__order" :key="item.id">
+						<li v-if="orderData.basket" v-for="item in orderData.basket.items" class="cart__order" :key="item.id">
 							<h3>{{ item.product.title }} <b>размер</b> {{ item.size.title }}</h3>
 							<b>{{ item.price }} ₽</b>
 							{{ item.quantity }} шт.
@@ -75,7 +75,7 @@
 
 					<div class="cart__total">
 						<p>
-							Доставка: <b>{{ orderDataDeliveryType.title }} {{ orderDataDeliveryType.price }} ₽</b>
+							Доставка: <b>{{ orderData.deliveryType.title }} {{ orderData.deliveryType.price }} ₽</b>
 						</p>
 						<p>
 							Итого: <b>{{ productsAmount }}</b> товара на сумму <b>{{ totalAmount }} ₽</b>
@@ -88,7 +88,7 @@
 </template>
 
 <script setup>
-	import { ref, computed } from 'vue';
+	import { ref, reactive, computed } from 'vue';
 	import { useStore } from 'vuex';
 	import { useRouter } from 'vue-router';
 
@@ -97,16 +97,12 @@
 
 	const preloader = ref(true);
 	const errorMessage = ref('');
-	const orderData = ref({});
-	const orderDataBasket = ref({});
-	const orderDataDeliveryType = ref({});
+	let orderData = reactive({});
 
 	store
 		.dispatch('loadOrderInfo', { id: router.currentRoute.value.params.id })
 		.then((resp) => {
-			orderData.value = resp;
-			orderDataBasket.value = orderData.value.basket.items;
-			orderDataDeliveryType.value = orderData.value.deliveryType;
+			Object.assign(orderData, resp);
 			errorMessage.value = '';
 			preloader.value = false;
 		})
@@ -115,9 +111,9 @@
 			errorMessage.value = error;
 		});
 
-	const productsAmount = computed(() => (orderData.value.basket ? orderData.value.basket.items.reduce((acc, item) => item.quantity + acc, 0) : 0));
+	const productsAmount = computed(() => (orderData.basket ? orderData.basket.items.reduce((acc, item) => item.quantity + acc, 0) : 0));
 
 	const totalAmount = computed(() =>
-		orderData.value.basket ? orderData.value.basket.items.reduce((acc, item) => item.price * item.quantity + acc, 0) + Number(orderData.value.deliveryType.price) : 0
+		orderData.basket ? orderData.basket.items.reduce((acc, item) => item.price * item.quantity + acc, 0) + Number(orderData.deliveryType.price) : 0
 	);
 </script>
