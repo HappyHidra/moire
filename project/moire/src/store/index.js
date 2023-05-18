@@ -31,14 +31,6 @@ export default createStore({
 				item.quantity = amount;
 			}
 		},
-		// syncCartProducts(state) {
-		// 	state.cartProductsData = state.cartProductsData.map((item) => {
-		// 		return {
-		// 			productId: item.product.id,
-		// 			amount: item.quantity,
-		// 		};
-		// 	});
-		// },
 		deleteCartProduct(state, productId) {
 			state.cartProductsData = state.cartProductsData.filter((item) => item.productId !== productId);
 		},
@@ -55,6 +47,9 @@ export default createStore({
 		},
 		cartTotalPrice(state, getters) {
 			return getters.getCartProducts.reduce((acc, item) => item.price * item.quantity + acc, 0);
+		},
+		productsAmount(state, getters) {
+			return getters.getCartProducts.reduce((acc, item) => item.quantity + acc, 0);
 		},
 	},
 	actions: {
@@ -158,6 +153,42 @@ export default createStore({
 				.then((response) => {
 					context.commit('updateCartProductsData', response.data.items);
 					// context.commit('syncCartProducts');
+				});
+		},
+		makeOrder(context, { name, address, phone, email, deliveryTypeId, paymentTypeId, comment }) {
+			return axios
+				.post(
+					API_BASE_URL + '/api/orders',
+					{
+						name,
+						address,
+						phone,
+						email,
+						deliveryTypeId,
+						paymentTypeId,
+						comment,
+					},
+					{
+						params: {
+							userAccessKey: context.state.userAccessKey,
+						},
+					}
+				)
+				.then((response) => {
+					return response;
+					// context.commit('updateCartProductsData', response.data.items);
+					// context.commit('syncCartProducts');
+				});
+		},
+		loadOrderInfo(context, { id }) {
+			return axios
+				.get(API_BASE_URL + `/api/orders/${id}`, {
+					params: {
+						userAccessKey: context.state.userAccessKey,
+					},
+				})
+				.then((response) => {
+					return response.data;
 				});
 		},
 	},

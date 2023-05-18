@@ -3,10 +3,10 @@
 		<div class="content__top">
 			<ul class="breadcrumbs">
 				<li class="breadcrumbs__item">
-					<a class="breadcrumbs__link" href="index.html"> Каталог </a>
+					<router-link class="breadcrumbs__link" :to="{ name: 'main' }"> Каталог </router-link>
 				</li>
 				<li class="breadcrumbs__item">
-					<a class="breadcrumbs__link" href="cart.html"> Корзина </a>
+					<router-link class="breadcrumbs__link" :to="{ name: 'cart' }"> Корзина </router-link>
 				</li>
 				<li class="breadcrumbs__item">
 					<a class="breadcrumbs__link"> Оформление заказа </a>
@@ -19,10 +19,16 @@
 		</div>
 
 		<section class="cart">
-			<form class="cart__form form" action="#" method="POST">
+			<form class="cart__form form" action="#" method="POST" @submit.prevent="makeOrder">
 				<div class="cart__field">
 					<div class="cart__data">
-						<label class="form__label">
+						<BaseFormText title="ФИО" :error="formError.name" placeholder="Введите ваше полное имя" v-model="formData.name" />
+						<BaseFormText title="Адрес доставки" :error="formError.address" placeholder="Введите ваш адрес" v-model="formData.address" />
+						<BaseFormText title="Телефон" type="tel" :error="formError.phone" placeholder="Введите ваш телефон" v-model="formData.phone" />
+						<BaseFormText title="Email" type="email" :error="formError.email" placeholder="Введи ваш Email" v-model="formData.email" />
+
+						<BaseFormTextarea title="Комментарий к заказу" :error="formError.comment" placeholder="Ваши пожелания" v-model="formData.comment" />
+						<!-- <label class="form__label">
 							<input class="form__input" type="text" name="name" placeholder="Введите ваше полное имя" />
 							<span class="form__value">ФИО</span>
 						</label>
@@ -46,7 +52,7 @@
 						<label class="form__label">
 							<textarea class="form__input form__input--area" name="comments" placeholder="Ваши пожелания"></textarea>
 							<span class="form__value">Комментарий к заказу</span>
-						</label>
+						</label> -->
 					</div>
 
 					<div class="cart__options">
@@ -54,13 +60,13 @@
 						<ul class="cart__options options">
 							<li class="options__item">
 								<label class="options__label">
-									<input class="options__radio sr-only" type="radio" name="delivery" value="0" checked="" />
+									<input @click="deliveryChoice('pickup')" class="options__radio sr-only" type="radio" name="delivery" value="0" checked="" />
 									<span class="options__value"> Самовывоз <b>бесплатно</b> </span>
 								</label>
 							</li>
 							<li class="options__item">
 								<label class="options__label">
-									<input class="options__radio sr-only" type="radio" name="delivery" value="500" />
+									<input @click="deliveryChoice('courier')" class="options__radio sr-only" type="radio" name="delivery" value="500" />
 									<span class="options__value"> Курьером <b>290 ₽</b> </span>
 								</label>
 							</li>
@@ -70,13 +76,13 @@
 						<ul class="cart__options options">
 							<li class="options__item">
 								<label class="options__label">
-									<input class="options__radio sr-only" type="radio" name="pay" value="card" checked="" />
+									<input @click="paymentChoice('card')" class="options__radio sr-only" type="radio" name="pay" value="card" checked="" />
 									<span class="options__value"> Картой при получении </span>
 								</label>
 							</li>
 							<li class="options__item">
 								<label class="options__label">
-									<input class="options__radio sr-only" type="radio" name="pay" value="cash" />
+									<input @click="paymentChoice('cash')" class="options__radio sr-only" type="radio" name="pay" value="cash" />
 									<span class="options__value"> Наличными при получении </span>
 								</label>
 							</li>
@@ -86,31 +92,32 @@
 
 				<div class="cart__block">
 					<ul class="cart__orders">
-						<li class="cart__order">
-							<h3>Смартфон Xiaomi Redmi Note 7 Pro 6/128GB</h3>
-							<b>990 ₽</b>
-							<span>Артикул: 150030</span>
-						</li>
-						<li class="cart__order">
-							<h3>Гироскутер Razor Hovertrax 2.0ii</h3>
-							<b>1 990 ₽</b>
-							<span>Артикул: 150030</span>
-						</li>
-						<li class="cart__order">
-							<h3>Электрический дрифт-карт Razor Lil’ Crazy</h3>
-							<b>4 090 ₽</b>
-							<span>Артикул: 150030</span>
+						<li v-for="item of cartData" class="cart__order" :key="item.id">
+							<h3>
+								{{ item.product.title }} <b>размер</b> {{ item.size.title }} <br />
+								{{ item.quantity }} шт.
+							</h3>
+							<b> {{ item.product.price }} ₽</b>
+							<span>Артикул: {{ item.product.id }}</span>
 						</li>
 					</ul>
 
 					<div class="cart__total">
-						<p>Доставка: <b>бесплатно</b></p>
-						<p>Итого: <b>3</b> товара на сумму <b>4 070 ₽</b></p>
+						<p>
+							{{ deliveryMethodMessage }}: <b>{{ deliveryCostMessage }}</b>
+						</p>
+						<p>
+							Итого: <b> {{ productsAmount }}</b> товара на сумму <b>{{ totalAmount }} ₽</b>
+						</p>
 					</div>
 
 					<button class="cart__button button button--primery" type="submit">Оформить заказ</button>
 				</div>
-				<div class="cart__error form__error-block">
+				<div v-if="preloader">
+					Отправка заявки...<br />
+					<img src="@/assets/Spinner-3.gif" />
+				</div>
+				<div class="cart__error form__error-block" v-if="formErrorMessage">
 					<h4>Заявка не отправлена!</h4>
 					<p>Похоже произошла ошибка. Попробуйте отправить снова или перезагрузите страницу.</p>
 				</div>
@@ -118,4 +125,78 @@
 		</section>
 	</main>
 </template>
-<script setup></script>
+
+<script setup>
+	import { ref, computed } from 'vue';
+	import { useStore } from 'vuex';
+	import { useRouter } from 'vue-router';
+	import BaseFormText from '@/components/BaseFormText.vue';
+	import BaseFormTextarea from '@/components/BaseFormTextarea.vue';
+
+	const store = useStore();
+	const router = useRouter();
+
+	const deliveryMethod = ref(1);
+	const paymentMethod = ref(1);
+
+	const deliveryMethodMessage = ref('Самовывоз');
+	const deliveryCostMessage = ref('бесплатно');
+
+	const deliveryChoice = (type) => {
+		if (type === 'pickup') {
+			deliveryMethod.value = 1;
+			deliveryMethodMessage.value = 'Самовывоз';
+			deliveryCostMessage.value = 'бесплатно';
+		}
+		if (type === 'courier') {
+			deliveryMethod.value = 2;
+			deliveryMethodMessage.value = 'Доставка';
+			deliveryCostMessage.value = '290 ₽';
+		}
+	};
+
+	const paymentChoice = (type) => {
+		if (type === 'card') {
+			paymentMethod.value = 1;
+		}
+		if (type === 'cash') {
+			paymentMethod.value = 2;
+		}
+	};
+
+	// Order
+	const preloader = ref(false);
+	const formErrorMessage = ref('');
+	const formData = ref({});
+	const formError = ref({});
+
+	const makeOrder = () => {
+		formError.value = {};
+		formErrorMessage.value = '';
+		preloader.value = true;
+		store
+			.dispatch('makeOrder', { ...formData.value, deliveryTypeId: deliveryMethod.value, paymentTypeId: paymentMethod.value })
+			.then((response) => {
+				preloader.value = false;
+				store.dispatch('loadCart');
+				router.push({ name: 'orderInfo', params: { id: response.data.id } });
+			})
+			.catch((error) => {
+				preloader.value = false;
+				formError.value = error.response.data.error.request || {};
+				formErrorMessage.value = error.response.data.error.message;
+			});
+	};
+
+	const cartData = computed(() => store.state.cartProductsData);
+
+	const productsAmount = computed(() => store.getters.productsAmount);
+
+	const totalAmount = computed(() => {
+		if (deliveryMethod.value === 1) {
+			return store.getters.cartTotalPrice;
+		} else {
+			return store.getters.cartTotalPrice + 290;
+		}
+	});
+</script>

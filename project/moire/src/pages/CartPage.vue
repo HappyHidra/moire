@@ -30,7 +30,7 @@
 						Итого: <span>{{ totalAmount }} ₽</span>
 					</p>
 
-					<button @click.prevent="" v-show="store.state.cartProductsData.length > 0" class="cart__button button button--primery" type="submit">Оформить заказ</button>
+					<button @click.prevent="toOrderPage" v-show="store.state.cartProductsData.length > 0" class="cart__button button button--primery" type="submit">Оформить заказ</button>
 				</div>
 			</form>
 		</section>
@@ -38,12 +38,18 @@
 </template>
 
 <script setup>
-	import { ref, computed, onMounted } from 'vue';
+	import { computed } from 'vue';
 	import { useStore } from 'vuex';
+	import { useRouter } from 'vue-router';
 	import CartItem from '@/components/CartItem.vue';
 
 	const store = useStore();
+	const router = useRouter();
 
 	const cartData = computed(() => store.state.cartProductsData);
 	const totalAmount = computed(() => store.getters.cartTotalPrice);
+
+	const toOrderPage = () => {
+		router.push({ name: 'order' });
+	};
 </script>

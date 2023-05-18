@@ -1,17 +1,3 @@
-<script setup>
-	// import MainPage from '@/pages/MainPage.vue';
-	import CartIndicator from './components/CartIndicator.vue';
-	import { useStore } from 'vuex';
-
-	const store = useStore();
-
-	const userAccessKey = localStorage.getItem('userAccessKey');
-	if (userAccessKey) {
-		store.commit('updateUserAccessKey', { userAccessKey });
-	}
-	store.dispatch('loadCart');
-</script>
-
 <template>
 	<header class="header container">
 		<div class="header__wrapper">
@@ -102,3 +88,16 @@
 		</div>
 	</footer>
 </template>
+
+<script setup>
+	import CartIndicator from './components/CartIndicator.vue';
+	import { useStore } from 'vuex';
+
+	const store = useStore();
+
+	const userAccessKey = localStorage.getItem('userAccessKey');
+	if (userAccessKey) {
+		store.commit('updateUserAccessKey', { userAccessKey });
+	}
+	store.dispatch('loadCart');
+</script>

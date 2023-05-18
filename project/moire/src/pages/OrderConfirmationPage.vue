@@ -1,19 +1,34 @@
 <template>
-	<main class="content container">
+	<main v-if="preloader" class="content container">
+		<div>
+			Получение данных...<br />
+			<img src="@/assets/Spinner-3.gif" />
+		</div>
+	</main>
+	<main v-if="errorMessage" class="content container">
+		<div class="cart__error form__error-block">
+			<h4>Данные о заказе неудалось получить! {{ errorMessage }}</h4>
+			<p>Похоже произошла ошибка. Попробуйте ерезагрузите страницу.</p>
+		</div>
+	</main>
+
+	<main v-else class="content container">
 		<div class="content__top">
 			<ul class="breadcrumbs">
 				<li class="breadcrumbs__item">
-					<a class="breadcrumbs__link" href="index.html"> Каталог </a>
+					<router-link class="breadcrumbs__link" :to="{ name: 'main' }"> Каталог </router-link>
 				</li>
 				<li class="breadcrumbs__item">
-					<a class="breadcrumbs__link" href="cart.html"> Корзина </a>
+					<router-link class="breadcrumbs__link" :to="{ name: 'cart' }"> Корзина </router-link>
 				</li>
 				<li class="breadcrumbs__item">
 					<a class="breadcrumbs__link"> Оформление заказа </a>
 				</li>
 			</ul>
 
-			<h1 class="content__title">Заказ оформлен <span>№ 23621</span></h1>
+			<h1 class="content__title">
+				Заказ оформлен <span>№ {{ orderData.id }}</span>
+			</h1>
 		</div>
 
 		<section class="cart">
@@ -27,49 +42,44 @@
 					<ul class="dictionary">
 						<li class="dictionary__item">
 							<span class="dictionary__key"> Получатель </span>
-							<span class="dictionary__value"> Иванова Василиса Алексеевна </span>
+							<span class="dictionary__value"> {{ orderData.name }} </span>
 						</li>
 						<li class="dictionary__item">
 							<span class="dictionary__key"> Адрес доставки </span>
-							<span class="dictionary__value"> Москва, ул. Ленина, 21, кв. 33 </span>
+							<span class="dictionary__value"> {{ orderData.address }} </span>
 						</li>
 						<li class="dictionary__item">
 							<span class="dictionary__key"> Телефон </span>
-							<span class="dictionary__value"> 8 800 989 74 84 </span>
+							<span class="dictionary__value"> {{ orderData.phone }} </span>
 						</li>
 						<li class="dictionary__item">
 							<span class="dictionary__key"> Email </span>
-							<span class="dictionary__value"> lalala@mail.ru </span>
+							<span class="dictionary__value"> {{ orderData.email }} </span>
 						</li>
 						<li class="dictionary__item">
 							<span class="dictionary__key"> Способ оплаты </span>
-							<span class="dictionary__value"> картой при получении </span>
+							<span class="dictionary__value"> {{ orderData.paymentType }} </span>
 						</li>
 					</ul>
 				</div>
 
 				<div class="cart__block">
 					<ul class="cart__orders">
-						<li class="cart__order">
-							<h3>Смартфон Xiaomi Redmi Note 7 Pro 6/128GB</h3>
-							<b>990 ₽</b>
-							<span>Артикул: 150030</span>
-						</li>
-						<li class="cart__order">
-							<h3>Гироскутер Razor Hovertrax 2.0ii</h3>
-							<b>1 990 ₽</b>
-							<span>Артикул: 150030</span>
-						</li>
-						<li class="cart__order">
-							<h3>Электрический дрифт-карт Razor Lil’ Crazy</h3>
-							<b>4 090 ₽</b>
-							<span>Артикул: 150030</span>
+						<li v-for="item in orderDataBasket" class="cart__order" :key="item.id">
+							<h3>{{ item.product.title }} <b>размер</b> {{ item.size.title }}</h3>
+							<b>{{ item.price }} ₽</b>
+							{{ item.quantity }} шт.
+							<span>Артикул: {{ item.product.id }}</span>
 						</li>
 					</ul>
 
 					<div class="cart__total">
-						<p>Доставка: <b>бесплатно</b></p>
-						<p>Итого: <b>3</b> товара на сумму <b>4 070 ₽</b></p>
+						<p>
+							Доставка: <b>{{ orderDataDeliveryType.title }} {{ orderDataDeliveryType.price }} ₽</b>
+						</p>
+						<p>
+							Итого: <b>{{ productsAmount }}</b> товара на сумму <b>{{ totalAmount }} ₽</b>
+						</p>
 					</div>
 				</div>
 			</form>
@@ -77,4 +87,37 @@
 	</main>
 </template>
 
-<script setup></script>
+<script setup>
+	import { ref, computed } from 'vue';
+	import { useStore } from 'vuex';
+	import { useRouter } from 'vue-router';
+
+	const store = useStore();
+	const router = useRouter();
+
+	const preloader = ref(true);
+	const errorMessage = ref('');
+	const orderData = ref({});
+	const orderDataBasket = ref({});
+	const orderDataDeliveryType = ref({});
+
+	store
+		.dispatch('loadOrderInfo', { id: router.currentRoute.value.params.id })
+		.then((resp) => {
+			orderData.value = resp;
+			orderDataBasket.value = orderData.value.basket.items;
+			orderDataDeliveryType.value = orderData.value.deliveryType;
+			errorMessage.value = '';
+			preloader.value = false;
+		})
+		.catch((error) => {
+			preloader.value = false;
+			errorMessage.value = error;
+		});
+
+	const productsAmount = computed(() => (orderData.value.basket ? orderData.value.basket.items.reduce((acc, item) => item.quantity + acc, 0) : 0));
+
+	const totalAmount = computed(() =>
+		orderData.value.basket ? orderData.value.basket.items.reduce((acc, item) => item.price * item.quantity + acc, 0) + Number(orderData.value.deliveryType.price) : 0
+	);
+</script>

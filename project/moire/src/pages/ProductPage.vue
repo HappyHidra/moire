@@ -193,7 +193,7 @@
 				productAdded.value = false;
 				productAddSending.value = false;
 				isShowAddedMessage.value = true;
-				message.value = `Добавить в корзину не удалось! ${error}`;
+				message.value = `Добавить в корзину не удалось! ${error.response.data.error.request.sizeId}`;
 			});
 	};
 
