@@ -26,33 +26,7 @@
 						<BaseFormText title="Адрес доставки" :error="formError.address" placeholder="Введите ваш адрес" v-model="formData.address" />
 						<BaseFormText title="Телефон" type="tel" :error="formError.phone" placeholder="Введите ваш телефон" v-model="formData.phone" />
 						<BaseFormText title="Email" type="email" :error="formError.email" placeholder="Введи ваш Email" v-model="formData.email" />
-
 						<BaseFormTextarea title="Комментарий к заказу" :error="formError.comment" placeholder="Ваши пожелания" v-model="formData.comment" />
-						<!-- <label class="form__label">
-							<input class="form__input" type="text" name="name" placeholder="Введите ваше полное имя" />
-							<span class="form__value">ФИО</span>
-						</label>
-
-						<label class="form__label">
-							<input class="form__input" type="text" name="address" placeholder="Введите ваш адрес" />
-							<span class="form__value">Адрес доставки</span>
-						</label>
-
-						<label class="form__label">
-							<input class="form__input" type="tel" name="phone" placeholder="Введите ваш телефон" />
-							<span class="form__value">Телефон</span>
-							<span class="form__error">Неверный формат телефона</span>
-						</label>
-
-						<label class="form__label">
-							<input class="form__input" type="email" name="email" placeholder="Введи ваш Email" />
-							<span class="form__value">Email</span>
-						</label>
-
-						<label class="form__label">
-							<textarea class="form__input form__input--area" name="comments" placeholder="Ваши пожелания"></textarea>
-							<span class="form__value">Комментарий к заказу</span>
-						</label> -->
 					</div>
 
 					<div class="cart__options">

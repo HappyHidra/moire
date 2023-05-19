@@ -212,7 +212,6 @@
 
 	fetchProduct($route.params.id)
 		.then(() => {
-			// console.log('product', product.value);
 			// Initial values setup
 			checkedColor.value = product.value.colors[0].color.id;
 			checkedSize.value = product.value.sizes[0].id;
@@ -237,7 +236,5 @@
 		.catch((error) => (status.isFailed = true));
 
 	// Загрузка вариантов доставки
-	fetchDeliveries().then((response) => {
-		// console.log('response', deliveriesData);
-	});
+	fetchDeliveries().then((response) => {});
 </script>

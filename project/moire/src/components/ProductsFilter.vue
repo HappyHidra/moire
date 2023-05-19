@@ -90,167 +90,197 @@
 	</aside>
 </template>
 
-<script>
-	import { defineComponent, ref } from 'vue';
+<script setup>
+	import { ref, reactive, computed, watch } from 'vue';
 	import axios from 'axios';
 	import { API_BASE_URL } from '@/config.js';
 
-	export default defineComponent({
-		props: {
-			categoryId: Number,
-			materialIds: Array,
-			seasonIds: Array,
-			colorIds: Array,
-			priceFrom: Number,
-			priceTo: Number,
-		},
-		data() {
-			return {
-				currentCategoryId: 0,
-				currentMaterialIds: [],
-				currentSeasonIds: [],
-				currentColorIds: [],
-				currentPriceFrom: 0,
-				currentPriceTo: 0,
-				categoriesData: null,
-				colorsData: null,
-				seasonsData: null,
-				materialsData: null,
-				colorsState: [],
-				seasonsState: [],
-				materialsState: [],
-			};
-		},
-		methods: {
-			loadCategories() {
-				axios.get(API_BASE_URL + `/api/productCategories`).then((response) => (this.categoriesData = response.data));
-			},
-			loadColors() {
-				axios.get(API_BASE_URL + `/api/colors`).then((response) => (this.colorsData = response.data));
-			},
-			loadMaterials() {
-				axios.get(API_BASE_URL + `/api/materials`).then((response) => (this.materialsData = response.data));
-			},
-			loadSeasons() {
-				axios.get(API_BASE_URL + `/api/seasons`).then((response) => (this.seasonsData = response.data));
-			},
-			submit() {
-				this.$emit('update:categoryId', this.currentCategoryId);
-				this.$emit('update:materialIds', this.currentMaterialIds);
-				this.$emit('update:seasonIds', this.currentSeasonIds);
-				this.$emit('update:colorIds', this.currentColorIds);
-				this.$emit('update:priceFrom', this.currentPriceFrom);
-				this.$emit('update:priceTo', this.currentPriceTo);
-			},
-			reset() {
-				this.$emit('update:categoryId', 0);
-				this.$emit('update:materialIds', []);
-				this.$emit('update:seasonIds', []);
-				this.$emit('update:colorIds', []);
-				this.$emit('update:priceFrom', 0);
-				this.$emit('update:priceTo', 0);
-				this.colorsState = [];
-				this.seasonsState = [];
-				this.materialsState = [];
-			},
-			toggleColor(id, currentStatus, colorIndex) {
-				let newStatus;
-				let index = this.currentColorIds.findIndex((colorId) => colorId === id);
-				if (!currentStatus && index === -1) {
-					newStatus = true;
-					this.currentColorIds.push(id);
-				} else {
-					newStatus = false;
-					this.currentColorIds.splice(index, 1);
-				}
-				this.colorsState[colorIndex] = newStatus;
-			},
-			toggleSeason(id, currentStatus, seasonIndex) {
-				let newStatus;
-				let index = this.currentSeasonIds.findIndex((seasonId) => seasonId === id);
+	const props = defineProps({
+		categoryId: Number,
+		materialIds: Array,
+		seasonIds: Array,
+		colorIds: Array,
+		priceFrom: Number,
+		priceTo: Number,
+	});
 
-				if (!currentStatus && index === -1) {
-					newStatus = true;
-					this.currentSeasonIds.push(id);
-				} else {
-					newStatus = false;
-					this.currentSeasonIds.splice(index, 1);
-				}
-				this.seasonsState[seasonIndex] = newStatus;
-			},
-			toggleMaterial(id, currentStatus, materialIndex) {
-				let newStatus;
-				let index = this.currentMaterialIds.findIndex((materialId) => materialId === id);
-				if (!currentStatus && index === -1) {
-					newStatus = true;
-					this.currentMaterialIds.push(id);
-				} else {
-					newStatus = false;
-					this.currentMaterialIds.splice(index, 1);
-				}
-				this.materialsState[materialIndex] = newStatus;
-			},
-		},
-		computed: {
-			categories() {
-				return this.categoriesData ? this.categoriesData.items : [];
-			},
-			colors() {
-				return this.colorsData ? this.colorsData.items : [];
-			},
-			materials() {
-				return this.materialsData ? this.materialsData.items : [];
-			},
-			seasons() {
-				return this.seasonsData ? this.seasonsData.items : [];
-			},
-			filtersActive() {
-				return this.categoryId !== 0 || this.materialIds.length !== 0 || this.seasonIds.length !== 0 || this.colorIds.length !== 0 || this.priceFrom !== 0 || this.priceTo !== 0;
-			},
-			initialState() {
-				this.colorsData
-					? this.colorsData.items.forEach(() => {
-							this.colorsState.push(false);
-					  })
-					: [];
-				this.seasonsData
-					? this.seasonsData.items.forEach(() => {
-							this.seasonsState.push(false);
-					  })
-					: [];
-				this.materialsData
-					? this.materialsData.items.forEach(() => {
-							this.materialsState.push(false);
-					  })
-					: [];
-			},
-		},
-		watch: {
-			categoryId(newValue) {
-				this.currentCategoryId = newValue;
-			},
-			materialIds(newValue) {
-				this.currentMaterialIds = newValue;
-			},
-			seasonIds(newValue) {
-				this.currentSeasonIds = newValue;
-			},
-			colorIds(newValue) {
-				this.currentColorIds = newValue;
-			},
-			priceFrom(newValue) {
-				this.currentPriceFrom = newValue;
-			},
-			priceTo(newValue) {
-				this.currentPriceTo = newValue;
-			},
-		},
+	const emit = defineEmits(['update:categoryId', 'update:materialIds', 'update:seasonIds', 'update:colorIds', 'update:priceFrom', 'update:priceTo']);
 
-		created() {
-			this.loadCategories();
-			this.loadColors();
-			this.loadMaterials();
-			this.loadSeasons();
+	const currentCategoryId = ref(0);
+	const currentMaterialIds = ref([]);
+	const currentSeasonIds = ref([]);
+	const currentColorIds = ref([]);
+	const currentPriceFrom = ref(null);
+	const currentPriceTo = ref(null);
+	const categoriesData = ref(null);
+	const colorsData = ref(null);
+	const seasonsData = ref(null);
+	const materialsData = ref(null);
+	const colorsState = ref([]);
+	const seasonsState = ref([]);
+	const materialsState = ref([]);
+
+	const loadCategories = () => {
+		axios.get(API_BASE_URL + `/api/productCategories`).then((response) => (categoriesData.value = response.data));
+	};
+
+	const loadColors = () => {
+		axios.get(API_BASE_URL + `/api/colors`).then((response) => (colorsData.value = response.data));
+	};
+
+	const loadMaterials = () => {
+		axios.get(API_BASE_URL + `/api/materials`).then((response) => (materialsData.value = response.data));
+	};
+
+	const loadSeasons = () => {
+		axios.get(API_BASE_URL + `/api/seasons`).then((response) => (seasonsData.value = response.data));
+	};
+
+	const submit = () => {
+		emit('update:categoryId', currentCategoryId.value);
+		emit('update:materialIds', currentMaterialIds.value);
+		emit('update:seasonIds', currentSeasonIds.value);
+		emit('update:colorIds', currentColorIds.value);
+		emit('update:priceFrom', currentPriceFrom.value);
+		emit('update:priceTo', currentPriceTo.value);
+	};
+
+	const reset = () => {
+		emit('update:categoryId', 0);
+		emit('update:materialIds', []);
+		emit('update:seasonIds', []);
+		emit('update:colorIds', []);
+		emit('update:priceFrom', 0);
+		emit('update:priceTo', 0);
+		colorsState.value = [];
+		seasonsState.value = [];
+		materialsState.value = [];
+		currentMaterialIds.value = [];
+		currentColorIds.value = [];
+		currentSeasonIds.value = [];
+		currentPriceFrom.value = null;
+		currentPriceTo.value = null;
+		currentCategoryId.value = 0;
+	};
+
+	const toggleColor = (id, currentStatus, colorIndex) => {
+		let newStatus;
+		let index = currentColorIds.value.findIndex((colorId) => colorId === id);
+		if (!currentStatus && index === -1) {
+			newStatus = true;
+			currentColorIds.value.push(id);
+		} else {
+			newStatus = false;
+			currentColorIds.value.splice(index, 1);
+		}
+		colorsState.value[colorIndex] = newStatus;
+	};
+
+	const toggleSeason = (id, currentStatus, seasonIndex) => {
+		let newStatus;
+		let index = currentSeasonIds.value.findIndex((seasonId) => seasonId === id);
+
+		if (!currentStatus && index === -1) {
+			newStatus = true;
+			currentSeasonIds.value.push(id);
+		} else {
+			newStatus = false;
+			currentSeasonIds.value.splice(index, 1);
+		}
+		seasonsState.value[seasonIndex] = newStatus;
+	};
+
+	const toggleMaterial = (id, currentStatus, materialIndex) => {
+		let newStatus;
+		let index = currentMaterialIds.value.findIndex((materialId) => materialId === id);
+		if (!currentStatus && index === -1) {
+			newStatus = true;
+			currentMaterialIds.value.push(id);
+		} else {
+			newStatus = false;
+			currentMaterialIds.value.splice(index, 1);
+		}
+		materialsState.value[materialIndex] = newStatus;
+	};
+
+	const categories = computed(() => {
+		return categoriesData.value ? categoriesData.value.items : [];
+	});
+
+	const colors = computed(() => {
+		return colorsData.value ? colorsData.value.items : [];
+	});
+
+	const materials = computed(() => {
+		return materialsData.value ? materialsData.value.items : [];
+	});
+
+	const seasons = computed(() => {
+		return seasonsData.value ? seasonsData.value.items : [];
+	});
+
+	const filtersActive = computed(() => {
+		return props.categoryId !== 0 || props.materialIds.length !== 0 || props.seasonIds.length !== 0 || props.colorIds.length !== 0 || props.priceFrom !== 0 || props.priceTo !== 0;
+	});
+
+	const initialState = computed(() => {
+		colorsData.value
+			? colorsData.value.items.forEach(() => {
+					colorsState.value.push(false);
+			  })
+			: [];
+		seasonsData.value
+			? seasonsData.value.items.forEach(() => {
+					seasonsState.value.push(false);
+			  })
+			: [];
+		materialsData.value
+			? materialsData.value.items.forEach(() => {
+					materialsState.value.push(false);
+			  })
+			: [];
+	});
+
+	watch(props.categoryId, {
+		handler: function (newValue) {
+			currentCategoryId.value = newValue;
 		},
 	});
+
+	watch(props.materialIds, {
+		handler: function (newValue) {
+			currentMaterialIds.value = newValue;
+		},
+		deep: true,
+	});
+
+	watch(props.seasonIds, {
+		handler: function (newValue) {
+			currentSeasonIds.value = newValue;
+		},
+		deep: true,
+	});
+
+	watch(props.colorIds, {
+		handler: function (newValue) {
+			currentColorIds.value = newValue;
+		},
+		deep: true,
+	});
+
+	watch(props.priceFrom, {
+		handler: function (newValue) {
+			currentPriceFrom.value = newValue;
+		},
+	});
+	watch(props.currentPriceTo, {
+		handler: function (newValue) {
+			currentPriceTo.value = newValue;
+		},
+	});
+
+	loadCategories();
+	loadColors();
+	loadMaterials();
+	loadSeasons();
 </script>

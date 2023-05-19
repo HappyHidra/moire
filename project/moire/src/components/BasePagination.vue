@@ -30,25 +30,28 @@
 	</ul>
 </template>
 
-<script>
-	import { defineComponent } from 'vue';
+<script setup>
+	import { computed } from 'vue';
 
-	export default defineComponent({
-		props: ['modelValue', 'elemCount', 'perPage'],
-		computed: {
-			page() {
-				return this.modelValue;
-			},
-			pageCount() {
-				return Math.ceil(this.elemCount / this.perPage);
-			},
-		},
-		methods: {
-			paginate(page) {
-				if (page >= 1 && page <= this.pageCount) {
-					this.$emit('update:modelValue', page);
-				} else return;
-			},
-		},
+	const props = defineProps({
+		page: Number,
+		elemCount: Number,
+		perPage: Number,
 	});
+
+	const emit = defineEmits(['update:page']);
+
+	const page = computed(() => {
+		return props.page;
+	});
+
+	const pageCount = computed(() => {
+		return Math.ceil(props.elemCount / props.perPage);
+	});
+
+	const paginate = (page) => {
+		if (page >= 1 && page <= pageCount.value) {
+			emit('update:page', page);
+		} else return;
+	};
 </script>

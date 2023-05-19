@@ -24,7 +24,7 @@
 				</div>
 				<div v-if="productsLoadingFailed">
 					Загрузка товаров неудалась!
-					<button class="button button--primery" @click.prevent="loadItems">Попробовать еще раз</button>
+					<button class="button button--primery" @click.prevent="loadProducts">Попробовать еще раз</button>
 				</div>
 				<!-- Product list -->
 				<ul class="catalog__list">
@@ -56,182 +56,178 @@
 			</section>
 		</div>
 		<!-- Pagination -->
-		<BasePagination v-model="page" :elem-count="countProducts" :per-page="productsPerPage" />
+		<BasePagination v-model:page="page" :elem-count="countProducts" :per-page="productsPerPage" />
 	</main>
 </template>
 
-<script>
-	import { defineComponent } from 'vue';
-	import { mapGetters, mapActions, mapMutations } from 'vuex';
+<script setup>
+	import { ref, computed, reactive, watch } from 'vue';
+	import { useStore, mapGetters, mapActions, mapMutations } from 'vuex';
 	import BasePagination from '@/components/BasePagination.vue';
 	import ProductsFilter from '@/components/ProductsFilter.vue';
 	import numberFormat from '@/helpers/numberFormat';
 
-	export default defineComponent({
-		components: { BasePagination, ProductsFilter },
-		data() {
-			return {
-				// For loading
-				productsLoading: false,
-				productsLoadingFailed: false,
-				// For catalog - шлифануть не нужны скорее всего 2 отдельных свойства
-				productsData: null,
-				productsState: null,
-				currentColor: [],
-				checkedItems: [],
-				// checkedColors: [[{}, {}], [{}], ....],
-				checkedColors: [],
-				// For pagination
-				page: 1,
-				productsPerPage: 12,
-				// For filter
-				filterCategoryId: 0,
-				filterMaterialIds: [],
-				filterSeasonIds: [],
-				filterColorIds: [],
-				filterPriceFrom: 0,
-				filterPriceTo: 0,
-			};
-		},
-		// Methods
-		methods: {
-			...mapActions(['loadItems']),
-			...mapGetters(['getItems', 'getImages']),
-			...mapMutations(['updateImages']),
-			loadProducts() {
-				this.productsLoading = true;
-				this.productsLoadingFailed = false;
+	const store = useStore();
+	// For loading
+	const productsLoading = ref(false);
+	const productsLoadingFailed = ref(false);
+	// For catalog
+	const productsData = ref(null);
+	// const productsState = ref(null);
+	const currentColor = ref([]);
+	const checkedItems = ref([]);
+	// checkedColors: [[{}, {}], [{}], ....],
+	const checkedColors = reactive([]);
+	// For pagination
+	const page = ref(1);
+	const productsPerPage = ref(12);
+	// For filter
+	const filterCategoryId = ref(0);
+	const filterMaterialIds = ref([]);
+	const filterSeasonIds = ref([]);
+	const filterColorIds = ref([]);
+	const filterPriceFrom = ref(0);
+	const filterPriceTo = ref(0);
 
-				clearTimeout(this.loadProductTimer);
-				this.loadProductTimer = setTimeout(() => {
-					this.loadItems({
-						categoryId: this.filterCategoryId,
-						materialIds: this.filterMaterialIds,
-						seasonIds: this.filterSeasonIds,
-						colorIds: this.filterColorIds,
-						page: this.page,
-						limit: this.productsPerPage,
-						minPrice: this.filterPriceFrom,
-						maxPrice: this.filterPriceTo,
-					})
-						.then((response) => {
-							this.checkedColors = [];
-							this.checkedItems = [];
-							this.currentColor = [];
-							this.productsData = response.data;
-							this.productsState = this.getItems();
-							// First items checked
-							this.productsState.items.forEach((item, index) => {
-								if (this.checkedItems[index]) {
-									this.checkedItems[index].push(false);
-								} else {
-									this.checkedItems[index] = [];
-									this.checkedItems[index].push(true);
-								}
-							});
-							// Initial images loading
-							const images = [];
-							this.productsData.items.map((product, index) => {
-								product.colors.map((color) => {
-									if (color.gallery) {
-										if (!images[index]) {
-											images.push(color.gallery[0].file.url);
-										}
-									}
-									// currentColor
-									if (!this.currentColor[index]) {
-										this.currentColor[index] = [];
-									}
-									if (color.gallery) {
-										if (this.checkedColors[index]) {
-											this.checkedColors[index].push({ ...color });
-										} else {
-											this.checkedColors[index] = [{ ...color }];
-										}
-										return color.gallery.map((files) => files.file.url);
-									}
-									return null;
-								});
-							});
-							this.updateImages(images);
-						})
-						.catch((error) => {
-							console.log('Error on loading products', error);
-							this.productsLoadingFailed = true;
-						})
-						.then(() => {
-							this.productsLoading = false;
-						});
-				}, 0);
-			},
-			clickedElement(elementIndex) {
-				const index = this.checkedColors[elementIndex].findIndex((color) => color.id === this.currentColor[elementIndex][0]);
-				if (this.products[elementIndex].image) {
-					if (this.checkedColors[elementIndex][index]) {
-						const newImage = this.checkedColors[elementIndex][index].gallery[0].file.url;
-						const imagesArr = this.getImages();
-						imagesArr.splice(elementIndex, 1, newImage);
-						this.updateImages([...imagesArr]);
+	const loadProducts = () => {
+		productsLoading.value = true;
+		productsLoadingFailed.value = false;
+
+		store
+			.dispatch('loadItems', {
+				categoryId: filterCategoryId.value,
+				materialIds: filterMaterialIds.value,
+				seasonIds: filterSeasonIds.value,
+				colorIds: filterColorIds.value,
+				page: page.value,
+				limit: productsPerPage.value,
+				minPrice: filterPriceFrom.value,
+				maxPrice: filterPriceTo.value,
+			})
+			.then((response) => {
+				// Object.assign(checkedColors, []);
+				// checkedItems.value = [];
+				// currentColor.value = [];
+				productsData.value = response.data;
+				// productsState.value = store.getters.getItems;
+				// First items checked
+				productsData.value.items.forEach((item, index) => {
+					if (checkedItems.value[index]) {
+						checkedItems.value[index].push(false);
+					} else {
+						checkedItems.value[index] = [];
+						checkedItems.value[index].push(true);
 					}
-				}
-			},
-		},
-		// Computed
-		computed: {
-			products() {
-				if (this.productsData) {
-					// if (this.productsState) {
-					return this.productsData.items.map((product, index) => {
-						return {
-							...product,
-							priceFiltered: numberFormat(product.price),
-							image: this.getImages()[index],
-						};
+				});
+				// Initial images loading
+				const images = [];
+				productsData.value.items.map((product, index) => {
+					product.colors.map((color) => {
+						if (color.gallery) {
+							if (!images[index]) {
+								images.push(color.gallery[0].file.url);
+							}
+						}
+						// currentColor
+						if (!currentColor.value[index]) {
+							currentColor.value[index] = [];
+						}
+						if (color.gallery) {
+							if (checkedColors[index]) {
+								checkedColors[index].push({ ...color });
+							} else {
+								checkedColors[index] = [{ ...color }];
+							}
+							return color.gallery.map((files) => files.file.url);
+						}
+						return null;
 					});
-				} else {
-					return [];
-				}
-			},
-			countProducts() {
-				return this.productsData ? this.productsData.pagination.total : 0;
-			},
-		},
-		// On creating component
-		created() {
-			this.loadProducts();
-		},
-		// watchers
-		watch: {
-			filterCategoryId() {
-				this.loadProducts();
-			},
-			filterMaterialIds: {
-				handler: function () {
-					this.loadProducts();
-				},
-				deep: true,
-			},
-			filterSeasonIds: {
-				handler: function () {
-					this.loadProducts();
-				},
-				deep: true,
-			},
-			filterColorIds: {
-				handler: function () {
-					this.loadProducts();
-				},
-				deep: true,
-			},
-			filterPriceFrom() {
-				this.loadProducts();
-			},
-			filterPriceTo() {
-				this.loadProducts();
-			},
-			page() {
-				this.loadProducts();
-			},
-		},
+				});
+				store.commit('updateImages', images);
+			})
+			.catch((error) => {
+				console.log('Error on loading products', error);
+				productsLoadingFailed.value = true;
+			})
+			.then(() => {
+				productsLoading.value = false;
+			});
+	};
+
+	const clickedElement = (elementIndex) => {
+		const index = checkedColors[elementIndex].findIndex((color) => color.id === currentColor.value[elementIndex][0]);
+		// if (products[elementIndex].image) {
+		if (checkedColors[elementIndex][index]) {
+			const newImage = checkedColors[elementIndex][index].gallery[0].file.url;
+			const imagesArr = store.getters.getImages;
+			imagesArr.splice(elementIndex, 1, newImage);
+			store.commit('updateImages', [...imagesArr]);
+		}
+		// }
+	};
+	// Computed
+	const products = computed(() => {
+		if (productsData.value) {
+			// if (productsState) {
+			return productsData.value.items.map((product, index) => {
+				return {
+					...product,
+					priceFiltered: numberFormat(product.price),
+					image: store.getters.getImages[index],
+				};
+			});
+		} else {
+			return [];
+		}
 	});
+
+	const countProducts = computed(() => {
+		return productsData.value ? productsData.value.pagination.total : 0;
+	});
+
+	// watchers
+	watch(filterCategoryId, function () {
+		loadProducts();
+	});
+
+	watch(
+		filterMaterialIds,
+		(newValue, oldValue) => {
+			// console.log('n', newValue);
+			// console.log('o', oldValue);
+			loadProducts();
+		},
+		{ deep: true }
+	);
+
+	watch(
+		filterSeasonIds,
+		function () {
+			loadProducts();
+		},
+		{ deep: true }
+	);
+
+	watch(
+		filterColorIds,
+		function () {
+			loadProducts();
+		},
+		{ deep: true }
+	);
+
+	watch(filterPriceFrom, function () {
+		loadProducts();
+	});
+
+	watch(filterPriceTo, function () {
+		loadProducts();
+	});
+
+	watch(page, function () {
+		loadProducts();
+	});
+
+	// On creating component
+	loadProducts();
 </script>

@@ -17,7 +17,6 @@ export default createStore({
 		},
 		updateImages(state, data) {
 			state.images = data;
-			// console.log('Images updated', state.images);
 		},
 		updateUserAccessKey(state, { userAccessKey: accessKey }) {
 			state.userAccessKey = accessKey;
@@ -72,7 +71,6 @@ export default createStore({
 					return resp;
 				})
 				.catch((error) => {
-					console.log(error);
 					return error;
 				});
 		},
@@ -89,7 +87,6 @@ export default createStore({
 						context.commit('updateUserAccessKey', response.data.user.accessKey);
 					}
 					context.commit('updateCartProductsData', response.data.items);
-					// context.commit('syncCartProducts');
 				})
 				.catch((er) => {
 					return er;
@@ -113,7 +110,6 @@ export default createStore({
 				)
 				.then((response) => {
 					context.commit('updateCartProductsData', response.data.items);
-					// context.commit('syncCartProducts');
 				});
 		},
 		updateCartProductAmount(context, { basketItemId, amount }) {
@@ -152,7 +148,6 @@ export default createStore({
 				})
 				.then((response) => {
 					context.commit('updateCartProductsData', response.data.items);
-					// context.commit('syncCartProducts');
 				});
 		},
 		makeOrder(context, { name, address, phone, email, deliveryTypeId, paymentTypeId, comment }) {
@@ -176,8 +171,6 @@ export default createStore({
 				)
 				.then((response) => {
 					return response;
-					// context.commit('updateCartProductsData', response.data.items);
-					// context.commit('syncCartProducts');
 				});
 		},
 		loadOrderInfo(context, { id }) {
