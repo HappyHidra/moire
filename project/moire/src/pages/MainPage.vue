@@ -192,28 +192,26 @@
 
 	watch(
 		filterMaterialIds,
-		(newValue, oldValue) => {
-			// console.log('n', newValue);
-			// console.log('o', oldValue);
+		function () {
 			loadProducts();
-		},
-		{ deep: true }
+		}
+		// { deep: true }
 	);
 
 	watch(
 		filterSeasonIds,
 		function () {
 			loadProducts();
-		},
-		{ deep: true }
+		}
+		// { deep: true }
 	);
 
 	watch(
 		filterColorIds,
 		function () {
 			loadProducts();
-		},
-		{ deep: true }
+		}
+		// { deep: true }
 	);
 
 	watch(filterPriceFrom, function () {

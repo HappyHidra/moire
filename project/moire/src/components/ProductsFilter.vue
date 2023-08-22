@@ -138,9 +138,13 @@
 
 	const submit = () => {
 		emit('update:categoryId', currentCategoryId.value);
-		emit('update:materialIds', currentMaterialIds.value);
-		emit('update:seasonIds', currentSeasonIds.value);
-		emit('update:colorIds', currentColorIds.value);
+		// Здесь событие присваивает реактивную ссылку на массив currentMaterialIds  в materialIds,
+		// нужно сделать копию спред оператором чтобы избежать реактивности  (currentMaterialIds.value реактивно и ссылка другая)
+		emit('update:materialIds', [...currentMaterialIds.value]);
+		// Здесь реактивность currentSeasonIds.value
+		emit('update:seasonIds', [...currentSeasonIds.value]);
+		// Здесь реактивность currentColorIds.value
+		emit('update:colorIds', [...currentColorIds.value]);
 		emit('update:priceFrom', currentPriceFrom.value);
 		emit('update:priceTo', currentPriceTo.value);
 	};
@@ -223,7 +227,7 @@
 		return props.categoryId !== 0 || props.materialIds.length !== 0 || props.seasonIds.length !== 0 || props.colorIds.length !== 0 || props.priceFrom !== 0 || props.priceTo !== 0;
 	});
 
-	const initialState = computed(() => {
+	const initialState = () => {
 		colorsData.value
 			? colorsData.value.items.forEach(() => {
 					colorsState.value.push(false);
@@ -239,7 +243,8 @@
 					materialsState.value.push(false);
 			  })
 			: [];
-	});
+	};
+	initialState();
 
 	watch(props.categoryId, {
 		handler: function (newValue) {
@@ -247,26 +252,27 @@
 		},
 	});
 
-	watch(props.materialIds, {
-		handler: function (newValue) {
-			currentMaterialIds.value = newValue;
-		},
-		deep: true,
-	});
+	// Хз зачем нужно ещё покапаться , особо не нужно вроде
+	// watch(props.materialIds, {
+	// 	handler: function (newValue) {
+	// 		currentMaterialIds.value = newValue;
+	// 	},
+	// 	deep: true,
+	// });
 
-	watch(props.seasonIds, {
-		handler: function (newValue) {
-			currentSeasonIds.value = newValue;
-		},
-		deep: true,
-	});
+	// watch(props.seasonIds, {
+	// 	handler: function (newValue) {
+	// 		currentSeasonIds.value = newValue;
+	// 	},
+	// 	deep: true,
+	// });
 
-	watch(props.colorIds, {
-		handler: function (newValue) {
-			currentColorIds.value = newValue;
-		},
-		deep: true,
-	});
+	// watch(props.colorIds, {
+	// 	handler: function (newValue) {
+	// 		currentColorIds.value = newValue;
+	// 	},
+	// 	deep: true,
+	// });
 
 	watch(props.priceFrom, {
 		handler: function (newValue) {
